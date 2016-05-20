@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!-- saved from url=(0056)http://threejs.org/examples/webgl_interactive_cubes.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>three.js webgl - interactive cubes</title>
+
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #f0f0f0;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	<style type="text/css" adt="123"></style>
+<style type="text/css">object,embed{                -webkit-animation-duration:.001s;-webkit-animation-name:playerInserted;                -ms-animation-duration:.001s;-ms-animation-name:playerInserted;                -o-animation-duration:.001s;-o-animation-name:playerInserted;                animation-duration:.001s;animation-name:playerInserted;}                @-webkit-keyframes playerInserted{from{opacity:0.99;}to{opacity:1;}}                @-ms-keyframes playerInserted{from{opacity:0.99;}to{opacity:1;}}                @-o-keyframes playerInserted{from{opacity:0.99;}to{opacity:1;}}                @keyframes playerInserted{from{opacity:0.99;}to{opacity:1;}}
+</style>
+</head>
+	<body>
+
+		<script src="./three.js"></script>
+
+		<script src="./stats.min.js"></script>
+
+		<script>
+
+			var container, stats;
+			var camera, scene, raycaster, renderer;
+
+			var mouse = new THREE.Vector2(), INTERSECTED;
+			var radius = 100, theta = 0;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				var info = document.createElement( 'div' );
+				info.style.position = 'absolute';
+				info.style.top = '10px';
+				info.style.width = '100%';
+				info.style.textAlign = 'center';
+				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> webgl - interactive cubes';
+				container.appendChild( info );
+
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+
+				var geometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
+
+				for ( var i = 0; i < 2000; i ++ ) {
+
+					var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+
+					object.position.x = Math.random() * 800 - 400;
+					object.position.y = Math.random() * 800 - 400;
+					object.position.z = Math.random() * 800 - 400;
+
+					object.rotation.x = Math.random() * 2 * Math.PI;
+					object.rotation.y = Math.random() * 2 * Math.PI;
+					object.rotation.z = Math.random() * 2 * Math.PI;
+
+					object.scale.x = Math.random() + 0.5;
+					object.scale.y = Math.random() + 0.5;
+					object.scale.z = Math.random() + 0.5;
+
+					scene.add( object );
+
+				}
+
+				raycaster = new THREE.Raycaster();
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor( 0xf0f0f0 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.sortObjects = false;
+				container.appendChild(renderer.domElement);
+
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				theta += 0.1;
+
+				camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+				camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+				camera.lookAt( scene.position );
+
+				camera.updateMatrixWorld();
+
+				// find intersections
+
+				raycaster.setFromCamera( mouse, camera );
+
+				var intersects = raycaster.intersectObjects( scene.children );
+
+				if ( intersects.length > 0 ) {
+
+					if ( INTERSECTED != intersects[ 0 ].object ) {
+
+						if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+
+						INTERSECTED = intersects[ 0 ].object;
+						INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+						INTERSECTED.material.emissive.setHex( 0xff0000 );
+
+					}
+
+				} else {
+
+					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+
+					INTERSECTED = null;
+
+				}
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script><div><div style="position: absolute; top: 10px; width: 100%; text-align: center;"><a href="http://threejs.org/" target="_blank">three.js</a> webgl - interactive cubes</div><canvas width="859" height="901" style="width: 859px; height: 901px;"></canvas><div style="position: fixed; top: 0px; left: 0px; cursor: pointer; opacity: 0.9; z-index: 10000;"><canvas width="80" height="48" style="width: 80px; height: 48px; display: block;"></canvas><canvas width="80" height="48" style="width: 80px; height: 48px; display: none;"></canvas><canvas width="80" height="48" style="width: 80px; height: 48px; display: none;"></canvas></div></div>
+
+
+
+<audio controls="controls" style="display: none;"></audio></body><style type="text/css">#yddContainer{display:block;font-family:Microsoft YaHei;position:relative;width:100%;height:100%;top:-4px;left:-4px;font-size:12px;border:1px solid}#yddTop{display:block;height:22px}#yddTopBorderlr{display:block;position:static;height:17px;padding:2px 28px;line-height:17px;font-size:12px;color:#5079bb;font-weight:bold;border-style:none solid;border-width:1px}#yddTopBorderlr .ydd-sp{position:absolute;top:2px;height:0;overflow:hidden}.ydd-icon{left:5px;width:17px;padding:0px 0px 0px 0px;padding-top:17px;background-position:-16px -44px}.ydd-close{right:5px;width:16px;padding-top:16px;background-position:left -44px}#yddKeyTitle{float:left;text-decoration:none}#yddMiddle{display:block;margin-bottom:10px}.ydd-tabs{display:block;margin:5px 0;padding:0 5px;height:18px;border-bottom:1px solid}.ydd-tab{display:block;float:left;height:18px;margin:0 5px -1px 0;padding:0 4px;line-height:18px;border:1px solid;border-bottom:none}.ydd-trans-container{display:block;line-height:160%}.ydd-trans-container a{text-decoration:none;}#yddBottom{position:absolute;bottom:0;left:0;width:100%;height:22px;line-height:22px;overflow:hidden;background-position:left -22px}.ydd-padding010{padding:0 10px}#yddWrapper{color:#252525;z-index:10001;background:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ab20.png);}#yddContainer{background:#fff;border-color:#4b7598}#yddTopBorderlr{border-color:#f0f8fc}#yddWrapper .ydd-sp{background-image:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ydd-sprite.png)}#yddWrapper a,#yddWrapper a:hover,#yddWrapper a:visited{color:#50799b}#yddWrapper .ydd-tabs{color:#959595}.ydd-tabs,.ydd-tab{background:#fff;border-color:#d5e7f3}#yddBottom{color:#363636}#yddWrapper{min-width:250px;max-width:400px;}</style></html>
